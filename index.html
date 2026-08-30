@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Cell Agile Task Board</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #2ecc71;
+            --low-color: #2ecc71;
+            --medium-color: #f1c40f;
+            --high-color: #e74c3c;
+            --card-bg: #ffffff;
+            --column-bg: #ebf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 40px 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin: 0 0 10px 0;
+            font-size: 2.5rem;
+        }
+
+        header p {
+            color: #7f8c8d;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        /* Form Styling */
+        .task-form-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 40px;
+        }
+
+        .task-form-card h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-grid input, .form-grid select, .form-grid textarea {
+            padding: 12px;
+            border: 1px solid #dcdde1;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus {
+            border-color: var(--accent-color);
+        }
+
+        .form-grid textarea {
+            grid-column: span 3;
+            resize: vertical;
+            height: 60px;
+        }
+
+        .form-grid button {
+            grid-column: span 3;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .form-grid button:hover {
+            background-color: #27ae60;
+        }
+
+        /* Board Styling */
+        .board {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .column {
+            background-color: var(--column-bg);
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 400px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .column h2 {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #bdc3c7;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .column-count {
+            background: #bdc3c7;
+            color: white;
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        /* Card Styling */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 350px;
+        }
+
+        .task-card {
+            background-color: var(--card-bg);
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid transparent;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.10);
+        }
+
+        .task-card.prio-high { border-left-color: var(--high-color); }
+        .task-card.prio-medium { border-left-color: var(--medium-color); }
+        .task-card.prio-low { border-left-color: var(--low-color); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-weight: bold;
+            font-size: 1.05rem;
+            color: var(--primary-color);
+        }
+
+        .card-prio-badge {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #eee;
+        }
+
+        .prio-high .card-prio-badge { background: #fadbd8; color: var(--high-color); }
+        .prio-medium .card-prio-badge { background: #fcf3cf; color: #b7950b; }
+        .prio-low .card-prio-badge { background: #d5f5e3; color: var(--low-color); }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #95a5a6;
+            border-top: 1px solid #f5f6fa;
+            padding-top: 8px;
+        }
+
+        .card-assignee {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-actions select {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            padding: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>📋 Code Cell Scrum Board</h1>
+        <p>Manage, prioritize, and track your development tasks seamlessly.</p>
+    </header>
+
+    <!-- Task Input Form -->
+    <section class="task-form-card">
+        <h3>➕ Add New Task</h3>
+        <form id="taskForm" onsubmit="createNewTask(event)">
+            <div class="form-grid">
+                <input type="text" id="taskTitle" placeholder="Task Title" required>
+                <input type="text" id="taskAssignee" placeholder="Assignee Name" required>
+                <select id="taskPriority">
+                    <option value="low">Low Priority</option>
+                    <option value="medium" selected>Medium Priority</option>
+                    <option value="high">High Priority</option>
+                </select>
+                <textarea id="taskDesc" placeholder="Briefly describe the objective of this task..." required></textarea>
+                <button type="submit">Create Task Card</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Agile Board Grid -->
+    <main class="board">
+        <!-- Backlog Column -->
+        <section class="column">
+            <h2>
+                Backlog 
+                <span class="column-count" id="count-backlog">1</span>
+            </h2>
+            <div class="task-list" id="col-backlog">
+                <div class="task-card prio-high" id="task-101">
+                    <div class="card-header">
+                        <span class="card-title">Setup Local Database</span>
+                        <span class="card-prio-badge">High</span>
+                    </div>
+                    <div class="card-desc">Configure SQLite storage structure and build helper utility connection protocols.</div>
+                    <div class="card-footer">
+                        <span class="card-assignee">👤 Rajas</span>
+                        <span class="card-actions">
+                            <select onchange="moveTask('task-101', this.value)">
+                                <option value="backlog" selected>Backlog</option>
+                                <option value="progress">In Progress</option>
+                                <option value="done">Done</option>
+                            </select>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- In Progress Column -->
+        <section class="column">
+            <h2>
+                In Progress 
+                <span class="column-count" id="count-progress">0</span>
+            </h2>
+            <div class="task-list" id="col-progress">
+                <!-- Tasks loaded dynamically here -->
+            </div>
+        </section>
+
+        <!-- Done Column -->
+        <section class="column">
+            <h2>
+                Done 
+                <span class="column-count" id="count-done">0</span>
+            </h2>
+            <div class="task-list" id="col-done">
+                <!-- Tasks loaded dynamically here -->
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    let taskCounter = 102; // Start IDs after the demo card
+
+    function createNewTask(event) {
+        event.preventDefault();
+
+        // Get Input Data
+        const title = document.getElementById('taskTitle').value;
+        const assignee = document.getElementById('taskAssignee').value;
+        const priority = document.getElementById('taskPriority').value;
+        const desc = document.getElementById('taskDesc').value;
+
+        // Generate unique card ID
+        const taskId = 'task-' + taskCounter++;
+
+        // Create Card HTML
+        const cardHTML = `
+            <div class="task-card prio-${priority}" id="${taskId}">
+                <div class="card-header">
+                    <span class="card-title">${title}</span>
+                    <span class="card-prio-badge">${priority}</span>
+                </div>
+                <div class="card-desc">${desc}</div>
+                <div class="card-footer">
+                    <span class="card-assignee">👤 ${assignee}</span>
+                    <span class="card-actions">
+                        <select onchange="moveTask('${taskId}', this.value)">
+                            <option value="backlog" selected>Backlog</option>
+                            <option value="progress">In Progress</option>
+                            <option value="done">Done</option>
+                        </select>
+                    </span>
+                </div>
+            </div>
+        `;
+
+        // Append to Backlog column by default
+        document.getElementById('col-backlog').insertAdjacentHTML('beforeend', cardHTML);
+
+        // Reset form inputs
+        document.getElementById('taskForm').reset();
+
+        // Recalculate Column Numbers
+        updateColumnCounts();
+    }
+
+    function moveTask(taskId, targetColumn) {
+        const card = document.getElementById(taskId);
+        const targetList = document.getElementById('col-' + targetColumn);
+        
+        if (card && targetList) {
+            targetList.appendChild(card);
+            
+            // Keep the select dropdown input option sync'ed correctly 
+            const select = card.querySelector('select');
+            select.value = targetColumn;
+            
+            updateColumnCounts();
+        }
+    }
+
+    function updateColumnCounts() {
+        const backlogCount = document.getElementById('col-backlog').children.length;
+        const progressCount = document.getElementById('col-progress').children.length;
+        const doneCount = document.getElementById('col-done').children.length;
+
+        document.getElementById('count-backlog').innerText = backlogCount;
+        document.getElementById('count-progress').innerText = progressCount;
+        document.getElementById('count-done').innerText = doneCount;
+    }
+
+    // Initial count calculation on startup
+    window.onload = updateColumnCounts;
+</script>
+
+</body>
+</html>
